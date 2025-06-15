@@ -1,15 +1,13 @@
 package com.example.mid_assignment.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 
-@Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
+@ToString
 public class User  implements Serializable {
     private String id;
     private String username;
@@ -17,6 +15,15 @@ public class User  implements Serializable {
     private String fullname;
     private String email;
     private String role;
+
+    public User(String username, String password, String fullname, String email, String role) {
+        this.username = username;
+        this.password = password;
+        this.fullname = fullname;
+        this.email = email;
+        this.role = role;
+    }
+
 
 
 }
