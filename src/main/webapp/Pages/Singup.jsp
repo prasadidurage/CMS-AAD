@@ -12,6 +12,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background: url('/assest/singup.jpeg') no-repeat center center fixed;
             background: #f2f2f2;
             margin: 0;
             padding: 0;
@@ -83,7 +84,10 @@
 <body>
 <h2>Create New Account</h2>
 
-<form action="signup" method="post">
+<form action="${pageContext.request.contextPath}/authServlet" method="post">
+    <input type="hidden" name="action" value="signup"/>
+    <input type="hidden" name="role" value="EMPLOYEE"/>
+
     <label>Username:</label>
     <input type="text" name="username" required>
 

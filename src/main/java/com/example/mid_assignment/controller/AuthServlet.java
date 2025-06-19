@@ -54,7 +54,7 @@ public class AuthServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/index.jsp");
         } else {
             request.getSession().setAttribute("error", "Registration failed.");
-            response.sendRedirect(request.getContextPath() + "/pages/signup.jsp");
+            response.sendRedirect(request.getContextPath() + "/Pages/Singup.jsp");
         }
     }
 
@@ -72,12 +72,12 @@ public class AuthServlet extends HttpServlet {
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
                 session.setAttribute("role", user.getRole());
-                response.sendRedirect(request.getContextPath() + "/admin-dashboard");
+                response.sendRedirect(request.getContextPath() + "/Pages/AdminDashboard.jsp");
             } else {
                 HttpSession session = request.getSession();
                 session.setAttribute("employeeId", user.getId());
                 session.setAttribute("employeeName", user.getUsername());
-                response.sendRedirect(request.getContextPath() + "/employee-dashboard");
+                response.sendRedirect(request.getContextPath() + "/Pages/EmployeeDashBoard.jsp");
             }
         } else {
             request.getSession().setAttribute("error", "Invalid username or password");

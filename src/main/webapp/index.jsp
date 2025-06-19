@@ -91,7 +91,7 @@
 
     <div class="signup-link">
         Don't have an account?
-        <a href="/pages/signup.jsp">Sign up here</a>
+        <a href="${pageContext.request.contextPath}/Pages/Singup.jsp">Sign up here</a>
     </div>
 </div>
 
