@@ -18,7 +18,7 @@ import java.sql.Timestamp;
         private String status;
         private String priority;
         private String submittedBy;
-        private Integer assignedTo;
+        private String assignedTo;
         private String adminRemarks;
         private Timestamp createdAt;
         private Timestamp updatedAt;
