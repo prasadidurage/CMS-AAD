@@ -19,8 +19,10 @@ public class ComplainDAO {
     private DataSource ds;
 
     public ComplainDAO(DataSource ds) {
+
         this.ds = ds;
     }
+
 
     public List<Complain> getAllComplaints() throws SQLException {
         List<Complain> complaints = new ArrayList<>();
@@ -63,6 +65,7 @@ public class ComplainDAO {
         }
 
         return complaints;
+
     }
 
 

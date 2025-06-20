@@ -16,8 +16,9 @@ import java.util.List;
 
 @WebServlet(name = "AdminServlet", urlPatterns = {"/admin-dashboard", "/admin-delete", "/update-status", "/add-remarks"})
 public class AdminServlet  extends HttpServlet {
+
     ComplainDAO complainDAO;
-    private DataSource dataSource;
+    private DataSource ds;
 
 
 
@@ -25,18 +26,24 @@ public class AdminServlet  extends HttpServlet {
     public void init() throws ServletException {
         System.out.println("AdminServlet init");
         super.init();
-        dataSource = (DataSource) getServletContext().getAttribute("ds");
-        complainDAO = new ComplainDAO(dataSource);
+        ds = (DataSource) getServletContext().getAttribute("ds");
+         complainDAO = new ComplainDAO(ds);
+        if (ds == null) {
+            throw new ServletException("DataSource not found in ServletContext.");
+        }
+        complainDAO = new ComplainDAO(ds);
     }
+
+
 
 
 
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
         HttpSession session = req.getSession(false);
-        complainDAO = new ComplainDAO(dataSource);
-        System.out.println("complain dAo");
+        complainDAO = new ComplainDAO(ds);
 
         try {
             List<Complain> complaints = complainDAO.getAllComplaints();
@@ -122,7 +129,7 @@ public class AdminServlet  extends HttpServlet {
         }
         try {
             int complaintId = Integer.parseInt(complaintIdStr);
-            complainDAO = new ComplainDAO(dataSource);
+            complainDAO = new ComplainDAO(ds);
 
             if (!complainDAO.complaintExists(complaintId)) {
                 session.setAttribute("errorMessage", "Complaint not found");
@@ -160,7 +167,7 @@ public class AdminServlet  extends HttpServlet {
 
         try {
             int complaintId = Integer.parseInt(id);
-            complainDAO = new ComplainDAO(dataSource);
+            complainDAO = new ComplainDAO(ds);
 
             if (!complainDAO.complaintExists(complaintId)) {
                 session.setAttribute("errorMessage", "Complaint not found");
@@ -206,7 +213,7 @@ public class AdminServlet  extends HttpServlet {
         }
         try {
             int id = Integer.parseInt(complaintId);
-            complainDAO = new ComplainDAO(dataSource);
+            complainDAO = new ComplainDAO(ds);
 
             if (!complainDAO.complaintExists(id)) {
                 session.setAttribute("errorMessage", "Complaint not found");

@@ -17,8 +17,8 @@ public class DataSource implements ServletContextListener {
         ds.setUrl("jdbc:mysql://localhost:3306/CMS");
         ds.setUsername("root");
         ds.setPassword("1234");
-        ds.setInitialSize(5);
-        ds.setMaxIdle(5);
+        ds.setInitialSize(20);
+        ds.setMaxIdle(20);
 
         ServletContext context = sce.getServletContext();
         context.setAttribute("ds", ds);
