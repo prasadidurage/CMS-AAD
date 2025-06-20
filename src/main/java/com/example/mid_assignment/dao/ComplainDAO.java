@@ -25,11 +25,14 @@ public class ComplainDAO {
     public List<Complain> getAllComplaints() throws SQLException {
         List<Complain> complaints = new ArrayList<>();
         String sql = "SELECT * FROM complaint ORDER BY created_at DESC";
-        String query = "select username from users where id = ?";
+        String query = "select username from users where user_id = ?";
+
+        System.out.println("ComplaintDAO: getAllComplaints");
 
         try (Connection conn = ds.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
+
 
             System.out.println("Executing query: " + sql);
 
@@ -45,7 +48,7 @@ public class ComplainDAO {
                 complain.setAdminRemarks(rs.getString("admin_remarks")); // Add this line
 
                 try (PreparedStatement preparedStatement = conn.prepareStatement(query)) {
-                    preparedStatement.setInt(1, rs.getInt("submitted_by"));
+                    preparedStatement.setString(1, rs.getString("submitted_by"));
                     ResultSet rs2 = preparedStatement.executeQuery();
                     while (rs2.next()) {
                         complain.setSubmitterName(rs2.getString("username"));
@@ -115,7 +118,7 @@ public class ComplainDAO {
     }
 
     public boolean deleteComplain(int complaintId) {
-        String sql = "DELETE FROM complaints WHERE id = ?";
+        String sql = "DELETE FROM complaint WHERE id = ?";
         try (Connection conn = ds.getConnection()) {
             PreparedStatement preparedStatement = conn.prepareStatement(sql);
             preparedStatement.setInt(1, complaintId);

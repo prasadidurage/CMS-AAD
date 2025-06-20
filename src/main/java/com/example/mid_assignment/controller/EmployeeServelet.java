@@ -45,10 +45,11 @@ public class EmployeeServelet extends HttpServlet {
 //        }
 //
 //        String servletPath = req.getServletPath();
+        complainDAO = new ComplainDAO(dataSource);
 
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("employeeId") == null) {
-            resp.sendRedirect(req.getContextPath() + "/pages/login.jsp?msg=session_expired");
+            resp.sendRedirect(req.getContextPath() + "/Pages/login.jsp?msg=session_expired");
             return;
         }
 
@@ -115,19 +116,16 @@ public class EmployeeServelet extends HttpServlet {
 
         try {
             HttpSession session = req.getSession(false);
-            System.out.println("jhhhhhhhh");
             if (session == null) {
-                resp.sendRedirect(req.getContextPath() + "/pages/login.jsp?msg=session_expired");
+                resp.sendRedirect(req.getContextPath() + "/Pages/login.jsp?msg=session_expired");
                 return;
             }
 
             String employeeId = (String) session.getAttribute("employeeId");
             String employeeName = (String) session.getAttribute("employeeName");
-            System.out.println("kkkkkkkkkkk");
 
             if (employeeId == null || employeeName == null) {
-                System.out.println("lllllllll");
-                resp.sendRedirect(req.getContextPath() + "/pages/login.jsp?msg=invalid_session");
+                resp.sendRedirect(req.getContextPath() + "/Pages/login.jsp?msg=invalid_session");
                 return;
             }
 
@@ -146,7 +144,7 @@ public class EmployeeServelet extends HttpServlet {
                 default:
                     resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
             }
-            System.out.println("iiiiiiii");
+
 
         } catch (Exception e) {
             System.err.println("Error in EmployeeServlet POST: " + e.getMessage());
@@ -155,10 +153,105 @@ public class EmployeeServelet extends HttpServlet {
         }
     }
 
-    private void updateComplaint(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId, HttpSession session) {
+    private void updateComplaint(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId, HttpSession session) throws IOException {
+        try {
+            String complaintIdStr = req.getParameter("id");
+            String title = req.getParameter("title");
+            String description = req.getParameter("description");
+            String category = req.getParameter("category");
+            String priority = req.getParameter("priority");
+
+            System.out.println("Updating complaint ID: " + complaintIdStr);
+            System.out.println("New title: " + title);
+
+            if (complaintIdStr == null || complaintIdStr.trim().isEmpty()) {
+                session.setAttribute("errorMessage", "Invalid complaint ID");
+                resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
+                return;
+            }
+
+            int complaintId = Integer.parseInt(complaintIdStr);
+
+            // Verify the complaint belongs to this employee and is PENDING
+            List<Complain> userComplaints = complainDAO.getAllComplaintsById(employeeId);
+            Complain existingComplaint = userComplaints.stream()
+                    .filter(c -> c.getId() == complaintId && "PENDING".equals(c.getStatus()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingComplaint == null) {
+                session.setAttribute("errorMessage", "You can only update your own pending complaints");
+                resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
+                return;
+            }
+
+            Complain updatedComplaint = new Complain();
+            updatedComplaint.setId(complaintId);
+            updatedComplaint.setTitle(title);
+            updatedComplaint.setDescription(description);
+            updatedComplaint.setCategory(category);
+            updatedComplaint.setPriority(priority);
+
+            boolean isUpdated = complainDAO.updateComplaint(updatedComplaint);
+
+            if (isUpdated) {
+                session.setAttribute("successMessage", "Complaint CMP-" + complaintId + " updated successfully!");
+                System.out.println("Complaint updated successfully: " + complaintId);
+            } else {
+                session.setAttribute("errorMessage", "Failed to update complaint");
+                System.out.println("Failed to update complaint: " + complaintId);
+            }
+
+        } catch (NumberFormatException e) {
+            session.setAttribute("errorMessage", "Invalid complaint ID format");
+            System.err.println("Invalid complaint ID format");
+        } catch (Exception e) {
+            session.setAttribute("errorMessage", "Error updating complaint: " + e.getMessage());
+            System.err.println("Error updating complaint: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
     }
 
-    private void deleteComplaint(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId, HttpSession session) {
+
+    private void deleteComplaint(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId, HttpSession session) throws IOException {
+        try {
+            String complaintIdStr = req.getParameter("id");
+            if (complaintIdStr == null || complaintIdStr.trim().isEmpty()) {
+                session.setAttribute("errorMessage", "Invalid complaint ID");
+                resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
+                return;
+            }
+
+            int complaintId = Integer.parseInt(complaintIdStr);
+
+            List<Complain> userComplaints = complainDAO.getAllComplaintsById(employeeId);
+            boolean isOwner = userComplaints.stream().anyMatch(c -> c.getId() == complaintId);
+
+            if (!isOwner) {
+                session.setAttribute("errorMessage", "You can only delete your own complaints");
+                resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
+                return;
+            }
+
+            boolean isDeleted = complainDAO.deleteComplain(complaintId);
+
+            if (isDeleted) {
+                session.setAttribute("successMessage", "Complaint deleted successfully");
+            } else {
+                session.setAttribute("errorMessage", "Failed to delete complaint");
+            }
+
+        } catch (NumberFormatException e) {
+            session.setAttribute("errorMessage", "Invalid complaint ID format");
+        } catch (Exception e) {
+            session.setAttribute("errorMessage", "Error deleting complaint: " + e.getMessage());
+            System.err.println("Error deleting complaint: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        resp.sendRedirect(req.getContextPath() + "/employee-dashboard");
     }
 
     private void saveComplaint(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId, String employeeName, HttpSession session) throws IOException {
@@ -179,7 +272,7 @@ public class EmployeeServelet extends HttpServlet {
             complain.setStatus(status);
             complain.setCreatedAt(createdAt);
             complain.setSubmitterName(employeeName);
-            complain.setSubmittedBy(String.valueOf(employeeId));
+            complain.setSubmittedBy(employeeId);
 
             boolean isSaved = complainDAO.saveComplaint(complain);
 
@@ -199,15 +292,23 @@ public class EmployeeServelet extends HttpServlet {
     }
 
     private void handleMyComplaints(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId) throws ServletException, IOException {
+        System.out.println(" my complain");
         try {
-            List<Complain> complaints = complainDAO.getAllComplaintsById(employeeId);
+            List<Complain> complaints = complainDAO.getAllComplaintsById(employeeId); // This gets all complaints
+
             req.setAttribute("complaints", complaints);
             req.setAttribute("pageTitle", "My Complaints");
-            req.getRequestDispatcher("/pages/my-complaints.jsp").forward(req, resp);
+
+            System.out.println("show my complain");
+            req.getRequestDispatcher("/Pages/my-complaints.jsp").forward(req, resp); // Make sure this path is correct
         } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("errorMessage", "Error retrieving complaints.");
+            req.getRequestDispatcher("/error.jsp").forward(req, resp);
             throw new ServletException("Error loading complaints", e);
         }
     }
+
 
     private void handleViewComplaint(HttpServletRequest req, HttpServletResponse resp, ComplainDAO complainDAO, String employeeId) throws ServletException, IOException {
         String complaintIdStr = req.getParameter("id");
@@ -222,7 +323,7 @@ public class EmployeeServelet extends HttpServlet {
 
                 if (complaint != null) {
                     req.setAttribute("complaint", complaint);
-                    req.getRequestDispatcher("/pages/view-complaint.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/Pages/view-complaint.jsp").forward(req, resp);
                 } else {
                     resp.sendRedirect(req.getContextPath() + "/employee-dashboard?msg=complaint_not_found");
                 }
